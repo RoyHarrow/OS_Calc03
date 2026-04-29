@@ -30,6 +30,27 @@
             max-width: 320px;
         }
 
+        .formula-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-size: 1.25rem;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .formula-input:focus {
+            border-color: #ff9500;
+        }
+
+        .formula-input::placeholder {
+            color: #aaa;
+            font-size: 1rem;
+        }
+
         .display {
             background: #1a1a2e;
             color: #fff;
@@ -143,6 +164,7 @@
 </head>
 <body>
     <div class="calculator">
+        <input type="text" id="formula-input" class="formula-input" placeholder="Enter formula (e.g., 4+5=)" autocomplete="off">
         <div class="display">
             <div class="operation" id="operation"></div>
             <div class="current" id="display">0</div>
@@ -183,6 +205,88 @@
 
         const displayEl = document.getElementById('display');
         const operationEl = document.getElementById('operation');
+        const formulaInputEl = document.getElementById('formula-input');
+
+        // Formula input handling
+        formulaInputEl.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                evaluateFormula(formulaInputEl.value);
+            }
+        });
+
+        function evaluateFormula(formula) {
+            // Remove whitespace
+            formula = formula.replace(/\s+/g, '');
+            
+            // Remove trailing = if present
+            if (formula.endsWith('=')) {
+                formula = formula.slice(0, -1);
+            }
+            
+            // Regex: number operator number
+            // Operators: + - * /
+            const regex = /^(-?\d+\.?\d*)?([+\-*/])(-?\d+\.?\d*)$/;
+            const match = formula.match(regex);
+            
+            if (!match) {
+                displayEl.textContent = 'Error';
+                operationEl.textContent = '';
+                return;
+            }
+            
+            const [, left, operator, right] = match;
+            
+            // Check for exactly 2 operands (no more, no less)
+            if (!left || !right || !operator) {
+                displayEl.textContent = 'Error';
+                operationEl.textContent = '';
+                return;
+            }
+            
+            const num1 = parseFloat(left);
+            const num2 = parseFloat(right);
+            
+            if (isNaN(num1) || isNaN(num2)) {
+                displayEl.textContent = 'Error';
+                operationEl.textContent = '';
+                return;
+            }
+            
+            let result;
+            switch (operator) {
+                case '+':
+                    result = num1 + num2;
+                    break;
+                case '-':
+                    result = num1 - num2;
+                    break;
+                case '*':
+                    result = num1 * num2;
+                    break;
+                case '/':
+                    if (num2 === 0) {
+                        displayEl.textContent = 'Error';
+                        operationEl.textContent = '';
+                        return;
+                    }
+                    result = num1 / num2;
+                    break;
+                default:
+                    displayEl.textContent = 'Error';
+                    operationEl.textContent = '';
+                    return;
+            }
+            
+            // Handle decimal precision
+            if (!Number.isInteger(result)) {
+                result = parseFloat(result.toFixed(10));
+                result = parseFloat(result);
+            }
+            
+            displayEl.textContent = result.toString();
+            operationEl.textContent = '';
+        }
 
         function updateDisplay() {
             let displayValue = currentInput;
