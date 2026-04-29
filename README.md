@@ -1,1 +1,1 @@
-# Examnple Project Created using OpenSpec
+# Example Project Created using OpenSpec
